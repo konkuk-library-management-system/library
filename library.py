@@ -469,6 +469,13 @@ class LibraryService:
         if not work or work.deleted_date is not None:
             print("도서가 존재하지 않거나 이미 삭제되었습니다.")
             return
+
+      # 대출 중인 도서가 있는지 확인
+        active_loans = [l for l in self.repo.loans if l.work_id == work_id and l.return_date is None]
+        if active_loans:
+            print(f"대출 중인 도서가 {len(active_loans)}건 있어 삭제할 수 없습니다.")
+            print("모든 대출이 반납된 후 삭제해주세요.")
+            return
         
         # 삭제된 도서를 deleted_works에 추가
         work.deleted_date = date_str(self.today)
