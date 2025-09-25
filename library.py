@@ -401,6 +401,49 @@ class LibraryService:
         if copy_id is not None:
             if not any(c.copy_id == copy_id for c in self.repo.copies):
                 raise ValueError(f"존재하지 않는 copy_id: {copy_id}")
+     
+
+     #학번 규칙, 이름 규칙, 연락처 규칙, 비밀번호 규칙 추가
+    def _validate_student_id(self, student_id: str) -> bool:
+        """학번 검증: 1931년부터 2025년까지의 9자리 숫자"""
+        import re
+        pattern = r'^(193[1-9]|19[4-9][0-9]|20[01][0-9]|202[0-5])[0-9]{5}$'
+        if not re.match(pattern, student_id):
+            print("학번 형식이 올바르지 않습니다. (1931년~2025년, 9자리 숫자)")
+            return False
+        return True
+
+    def _validate_name(self, name: str) -> bool:
+        """이름 검증: 2~4자 한글만"""
+        import re
+        if len(name) < 2 or len(name) > 4:
+            print("이름은 2~4자여야 합니다.")
+            return False
+        if not re.match(r'^[가-힣]+$', name):
+            print("이름은 한글만 가능합니다.")
+            return False
+        return True
+
+    def _validate_phone(self, phone: str) -> bool:
+        """연락처 검증: 010-XXXX-XXXX 또는 01X-XXX-XXXX 형식"""
+        import re
+        pattern = r'^01(0-[0-9]{4}|[1-9]-[0-9]{3,4})-[0-9]{4}$'
+        if not re.match(pattern, phone):
+            print("연락처 형식이 올바르지 않습니다. (010-XXXX-XXXX 또는 01X-XXX-XXXX)")
+            return False
+        return True
+
+    def _validate_password(self, password: str) -> bool:
+        """비밀번호 검증: 4~20자, 공백 없음"""
+        if len(password) < 4 or len(password) > 20:
+            print("비밀번호는 4~20자여야 합니다.")
+            return False
+        if ' ' in password or '\t' in password or '\n' in password:
+            print("비밀번호에 공백이 포함될 수 없습니다.")
+            return False
+        return True
+        
+
 
     # ---- 날짜 제어 ----
     def set_today(self, new_date: date):
@@ -565,16 +608,45 @@ class LibraryService:
             print("비밀번호를 입력해주세요.")
             return
         
+         # 공백 제거
+        student_id = student_id.strip()
+        name = name.strip()
+        phone = phone.strip()
+        password = password.strip()
+        
+        # 학번 검증
+        if not self._validate_student_id(student_id):
+            return
+        
+        # 이름 검증
+        if not self._validate_name(name):
+            return
+        
+        # 연락처 검증
+        if not self._validate_phone(phone):
+            return
+        
+        # 비밀번호 검증
+        if not self._validate_password(password):
+            return
+        
+        
         # 중복 검사
         if any(m.student_id == student_id for m in self.repo.members):
             print("이미 등록된 학번입니다.")
             return
         
+        # 연락처 중복 검사
+        if any(m.phone == phone for m in self.repo.members):
+            print("이미 등록된 연락처입니다.")
+            return
+        
+        
         self.repo.members.append(Member(
-            student_id=student_id.strip(), 
-            name=name.strip(), 
-            phone=phone.strip(), 
-            password=password.strip(), 
+            student_id=student_id, 
+            name=name, 
+            phone=phone, 
+            password=password, 
             registered_date=date_str(self.today)
         ))
         self.repo.persist()
