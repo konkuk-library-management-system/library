@@ -415,13 +415,24 @@ class LibraryService:
 
     def _validate_name(self, name: str) -> bool:
         """이름 검증: 2~4자 한글만"""
+
         import re
+
+        # 길이 검사
         if len(name) < 2 or len(name) > 4:
             print("이름은 2~4자여야 합니다.")
             return False
+        
+        # 한글 검사
         if not re.match(r'^[가-힣]+$', name):
-            print("이름은 한글만 가능합니다.")
+           
+             # 영어나 숫자, 특수문자가 포함된 경우
+            if re.search(r'[a-zA-Z0-9]', name):
+                print("이름은 한글로 된 2~4자리여야 합니다.")
+            else:
+                print("이름은 한글로 된 2~4자리여야 합니다.")
             return False
+        
         return True
 
     def _validate_phone(self, phone: str) -> bool:
